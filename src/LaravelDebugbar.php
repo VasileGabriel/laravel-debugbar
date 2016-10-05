@@ -651,20 +651,27 @@ class LaravelDebugbar extends DebugBar
         /** @var Request $request */
         $request = $this->app['request'];
 
-        $this->data = [
-            '__meta' => [
-                'id' => $this->getCurrentRequestId(),
-                'datetime' => date('Y-m-d H:i:s'),
-                'utime' => microtime(true),
-                'method' => $request->getMethod(),
-                'uri' => $request->getRequestUri(),
-                'ip' => $request->getClientIp()
-            ]
-        ];
-
+        $appendMeta = [];
         foreach ($this->collectors as $name => $collector) {
-            $this->data[$name] = $collector->collect();
+            $collectedData = $collector->collect();
+            $this->data[$name] = $collectedData;
+            foreach ($collector->getAppendMetaAttributes() as $dataKey => $dataValue) {
+                if (isset($collectedData[$dataValue])) {
+                    $appendMeta[$dataKey] = $collectedData[$dataValue];
+                }
+            }
         }
+
+        $basicMeta = [
+            'id' => $this->getCurrentRequestId(),
+            'datetime' => date('Y-m-d H:i:s'),
+            'utime' => microtime(true),
+            'method' => $request->getMethod(),
+            'uri' => $request->getRequestUri(),
+            'ip' => $request->getClientIp()
+        ];
+        $finalMeta = array_merge($basicMeta, $appendMeta);
+        $this->data['__meta'] = $finalMeta;
 
         // Remove all invalid (non UTF-8) characters
         array_walk_recursive(

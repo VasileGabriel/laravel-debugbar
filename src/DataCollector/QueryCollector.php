@@ -18,6 +18,9 @@ class QueryCollector extends PDOCollector
     protected $explainTypes = ['SELECT']; // ['SELECT', 'INSERT', 'UPDATE', 'DELETE']; for MySQL 5.6.3+
     protected $showHints = false;
     protected $reflection = [];
+    protected $appendMetaAttributes = [
+        'queries' => 'nb_statements',
+    ];
 
     /**
      * @param TimeDataCollector $timeCollector
